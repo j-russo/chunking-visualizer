@@ -1,0 +1,29 @@
+---
+description: SvelteKit and Svelte patterns for this project
+globs: **/*.svelte
+alwaysApply: false
+---
+
+# Svelte Patterns
+
+- Use Svelte 4 reactive declarations (`$:`) for derived state — chunks, metrics, and comparison values are all reactive
+- Bind form controls directly with `bind:value` and `bind:checked`; avoid manual event handlers where binding works
+- Keep all app state in `+page.svelte` — no stores needed for this single-page app
+- Use `{#if}`, `{#each}` blocks; do not reach for JS DOM manipulation
+
+## Styling
+
+- Tailwind utility classes only — no `<style>` blocks unless truly unavoidable
+- Responsive grid: `grid-cols-1 md:grid-cols-2 lg:grid-cols-4` pattern for controls
+- Color-coded chunks use inline `style` with HSL: `hsl({hue}, 70%, 85%)` — this is intentional, not a Tailwind bypass
+
+## Events
+
+- Prefer `on:click={() => fn()}` inline handlers for simple calls
+- Avoid deprecated `createEventDispatcher` for this single-component app
+
+## Anti-patterns to Avoid
+
+- Do not add TypeScript (`lang="ts"`) — project is plain JS
+- Do not split into multiple route pages — keep as single `+page.svelte`
+- Do not import external charting/UI libraries — Tailwind + vanilla Svelte only

@@ -1,0 +1,40 @@
+---
+description: Conventions for chunking algorithm and metrics library files
+globs: src/lib/**/*.js
+alwaysApply: false
+---
+
+# Library Conventions (`src/lib/`)
+
+## Chunk Object Shape
+
+Every chunking function must return an array of objects with this exact shape:
+
+```js
+{ text: string, start: number, end: number }
+```
+
+`start` and `end` are character indices into the original text. Do not add extra fields without a clear reason.
+
+## Chunker Signatures
+
+```js
+chunkByCharacters(text, size = 200, overlap = 0)
+chunkBySentences(text, maxSize = 200)
+chunkByParagraphs(text, maxSize = 400)
+chunkSemantic(text, maxSize = 300)   // delegates to chunkByParagraphs — mock only
+```
+
+- All functions are pure — no side effects, no global state
+- Export named functions only; no default exports in lib files
+
+## Metrics
+
+- `calculateMetrics(chunks)` — always guard for empty array, return zeroed object
+- `calculateIoU(chunks)` — returns integer 0–100 representing overlap efficiency; this is a simplified demo metric, not true IoU vs ground truth
+
+## Correctness Notes
+
+- `chunkBySentences`: uses lookbehind regex `/(?<=[.!?])\s+/` — valid in modern browsers/Node; do not "fix" it
+- `chunkByParagraphs`: calls `chunkBySentences` for oversized paragraphs; preserve this fallback behavior
+- Overlap in `chunkByCharacters`: advance by `size - overlap`, not `size`

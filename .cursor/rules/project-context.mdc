@@ -1,0 +1,29 @@
+---
+description: Core project context and goals for the Chunking Visualizer
+alwaysApply: true
+---
+
+# Chunking Visualizer — Project Context
+
+**Purpose:** Interactive demo app showing text chunking strategies for RAG systems. Built to demonstrate Svelte competency for a Structured AI interview with CTO Brandon Smith, whose ChromaDB chunking research (https://research.trychroma.com/evaluating-chunking) inspired this project.
+
+**Stack:** SvelteKit (no TypeScript) + Tailwind CSS, deployed to Vercel.
+
+**Target audience:** Technical CTO who authored the referenced chunking paper — keep the implementation credible and the language precise.
+
+## Key Constraints
+
+- No TypeScript — plain JavaScript only (`.js`, `.svelte`)
+- Keep it shippable in 4–5 hours; avoid over-engineering
+- Semantic chunking is intentionally a mock (paragraph-based proxy); acknowledge this explicitly in UI and README
+- Sample texts are construction domain (specs, drawing notes) — this is deliberate context for Structured AI's use case
+
+## File Layout
+
+```
+src/
+  routes/+page.svelte   # single-page app
+  lib/chunkers.js       # 4 chunking algorithms
+  lib/metrics.js        # calculateMetrics + calculateIoU
+  lib/sampleText.js     # constructionSpec + drawingNote exports
+```
