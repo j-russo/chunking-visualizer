@@ -4,7 +4,7 @@ Interactive visualization of text chunking strategies for RAG (Retrieval-Augment
 
 ## Inspiration
 
-Inspired by [Brandon Smith's research on evaluating chunking strategies](https://research.trychroma.com/evaluating-chunking) at ChromaDB. His benchmarks showed that `RecursiveCharacterTextSplitter` with ~200-character chunks and no overlap achieved the best precision — counter-intuitive, since larger semantic chunks might seem preferable. The likely explanation for construction content: spec sections are short and dense, so small windows naturally stay within a single topic without capturing noise from adjacent sections. The 200-character default in this demo reflects that finding.
+Inspired by [Brandon Smith's research on evaluating chunking strategies](https://research.trychroma.com/evaluating-chunking) at ChromaDB. His benchmarks showed that `RecursiveCharacterTextSplitter` with ~200-character chunks and no overlap achieved the best precision — counter-intuitive, since larger semantic chunks might seem preferable. Whether that holds for construction documents — where spec sections tend to be short and dense — is an open question, but it's a reasonable default to start from pending evaluation on construction-specific datasets.
 
 ## Chunking Strategies
 
