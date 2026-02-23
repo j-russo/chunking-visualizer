@@ -56,9 +56,30 @@
 	function loadSample(sample) {
 		text = sample === 'spec' ? constructionSpec : drawingNote;
 	}
+
+	let tooltip = { visible: false, x: 0, y: 0, text: '' };
+
+	function showTooltip(e, text) {
+		const rect = e.currentTarget.getBoundingClientRect();
+		tooltip = { visible: true, x: rect.left + rect.width / 2, y: rect.top, text };
+	}
+
+	function hideTooltip() {
+		tooltip = { ...tooltip, visible: false };
+	}
 </script>
 
 <div class="h-screen flex flex-col bg-slate-50 overflow-hidden">
+
+	<!-- Fixed tooltip — rendered outside overflow containers so it's never clipped -->
+	{#if tooltip.visible}
+		<div
+			class="fixed z-50 w-56 rounded-lg bg-slate-800 px-3 py-2 text-xs text-white leading-relaxed shadow-xl pointer-events-none"
+			style="left: {tooltip.x}px; top: {tooltip.y}px; transform: translateX(-50%) translateY(calc(-100% - 8px))"
+		>
+			{tooltip.text}
+		</div>
+	{/if}
 
 	<!-- Header -->
 	<header class="bg-white border-b border-slate-200 px-6 py-3 flex-shrink-0">
@@ -111,8 +132,15 @@
 				<!-- Chunk Size -->
 				<div>
 					<label for="chunkSize" class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-						Max Chunk Size
-						<span class="text-blue-600 font-bold ml-1">{chunkSize} chars</span>
+						<span class="flex items-center gap-1.5">
+							Max Chunk Size
+							<span class="text-blue-600 font-bold">{chunkSize} chars</span>
+							<span
+								class="cursor-help text-slate-400 hover:text-slate-600 text-xs font-normal normal-case leading-none"
+								on:mouseenter={(e) => showTooltip(e, '200 chars is the default based on ChromaDB benchmark findings — smaller dense windows outperformed larger semantic chunks on retrieval precision for structured documents.')}
+								on:mouseleave={hideTooltip}
+							>ℹ</span>
+						</span>
 					</label>
 					<input
 						id="chunkSize"
@@ -131,12 +159,19 @@
 				<!-- Overlap -->
 				<div>
 					<label for="overlap" class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">
-						Overlap
-						{#if strategy === 'characters'}
-							<span class="text-orange-500 font-bold ml-1">{overlap} chars</span>
-						{:else}
-							<span class="text-slate-400 font-normal ml-1">(characters only)</span>
-						{/if}
+						<span class="flex items-center gap-1.5">
+							Overlap
+							{#if strategy === 'characters'}
+								<span class="text-orange-500 font-bold">{overlap} chars</span>
+							{:else}
+								<span class="text-slate-400 font-normal normal-case">(characters only)</span>
+							{/if}
+							<span
+								class="cursor-help text-slate-400 hover:text-slate-600 text-xs font-normal normal-case leading-none"
+								on:mouseenter={(e) => showTooltip(e, 'Repeats N characters from the end of the previous chunk at the start of the next. Preserves context across boundaries — useful when a query answer spans two chunks. Tradeoff: adds redundancy and increases total indexed tokens.')}
+								on:mouseleave={hideTooltip}
+							>ℹ</span>
+						</span>
 					</label>
 					<input
 						id="overlap"
@@ -205,14 +240,23 @@
 					<div class="grid grid-cols-2 gap-2">
 						{#each [
 							{ label: 'Chunks', value: metrics.count, color: 'text-blue-600' },
-							{ label: 'Efficiency', value: efficiency + '%', color: efficiency >= 90 ? 'text-emerald-600' : efficiency >= 70 ? 'text-amber-600' : 'text-red-500' },
+							{ label: 'Efficiency', value: efficiency + '%', color: efficiency >= 90 ? 'text-emerald-600' : efficiency >= 70 ? 'text-amber-600' : 'text-red-500', tooltip: 'Overlap ratio — fraction of total character coverage that is non-overlapping. Not true IoU: ground-truth IoU would compare retrieved chunks against labeled answer spans.' },
 							{ label: 'Avg Size', value: metrics.avgSize + ' ch', color: 'text-slate-700' },
-							{ label: 'Total', value: metrics.totalChars.toLocaleString(), color: 'text-slate-700' },
+							{ label: 'Total', value: metrics.totalChars.toLocaleString() + ' ch', color: 'text-slate-700' },
 							{ label: 'Min', value: metrics.minSize + ' ch', color: 'text-slate-700' },
 							{ label: 'Max', value: metrics.maxSize + ' ch', color: 'text-slate-700' }
 						] as stat}
 							<div class="bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
-								<div class="text-xs text-slate-400 font-medium">{stat.label}</div>
+								<div class="text-xs text-slate-400 font-medium flex items-center gap-1">
+									{stat.label}
+									{#if stat.tooltip}
+										<span
+											class="cursor-help text-slate-300 hover:text-slate-500 leading-none"
+											on:mouseenter={(e) => showTooltip(e, stat.tooltip)}
+											on:mouseleave={hideTooltip}
+										>ℹ</span>
+									{/if}
+								</div>
 								<div class="text-base font-bold {stat.color}">{stat.value}</div>
 							</div>
 						{/each}
@@ -225,14 +269,23 @@
 						<div class="grid grid-cols-2 gap-2">
 							{#each [
 								{ label: 'Chunks', value: metrics2.count, color: 'text-purple-600' },
-								{ label: 'Efficiency', value: efficiency2 + '%', color: efficiency2 >= 90 ? 'text-emerald-600' : efficiency2 >= 70 ? 'text-amber-600' : 'text-red-500' },
+								{ label: 'Efficiency', value: efficiency2 + '%', color: efficiency2 >= 90 ? 'text-emerald-600' : efficiency2 >= 70 ? 'text-amber-600' : 'text-red-500', tooltip: 'Overlap ratio — fraction of total character coverage that is non-overlapping. Not true IoU: ground-truth IoU would compare retrieved chunks against labeled answer spans.' },
 								{ label: 'Avg Size', value: metrics2.avgSize + ' ch', color: 'text-slate-700' },
-								{ label: 'Total', value: metrics2.totalChars.toLocaleString(), color: 'text-slate-700' },
+								{ label: 'Total', value: metrics2.totalChars.toLocaleString() + ' ch', color: 'text-slate-700' },
 								{ label: 'Min', value: metrics2.minSize + ' ch', color: 'text-slate-700' },
 								{ label: 'Max', value: metrics2.maxSize + ' ch', color: 'text-slate-700' }
 							] as stat}
 								<div class="bg-slate-50 rounded-lg border border-slate-200 px-3 py-2">
-									<div class="text-xs text-slate-400 font-medium">{stat.label}</div>
+									<div class="text-xs text-slate-400 font-medium flex items-center gap-1">
+										{stat.label}
+										{#if stat.tooltip}
+											<span
+												class="cursor-help text-slate-300 hover:text-slate-500 leading-none"
+												on:mouseenter={(e) => showTooltip(e, stat.tooltip)}
+												on:mouseleave={hideTooltip}
+											>ℹ</span>
+										{/if}
+									</div>
 									<div class="text-base font-bold {stat.color}">{stat.value}</div>
 								</div>
 							{/each}
@@ -241,14 +294,7 @@
 				</div>
 			</div>
 
-			<!-- Footer credit -->
-			<div class="px-5 py-3 border-t border-slate-100 text-xs text-slate-400">
-				Based on
-				<a href="https://research.trychroma.com/evaluating-chunking" class="hover:underline" target="_blank" rel="noopener noreferrer">
-					Brandon Smith (ChromaDB)
-				</a>
-			</div>
-		</aside>
+			</aside>
 
 		<!-- Right Panel: Text Input + Chunk Visualization -->
 		<main class="flex-1 overflow-hidden flex flex-col">
